@@ -95,7 +95,8 @@ class ViewController: UIViewController, ARSessionDelegate {
                     let textPositionInWorldCoordinates = result.worldTransform.position - (rayDirection * 0.1)
                     
                     // 5. Create a 3D text to visualize the classification result.
-                    let textEntity = self.model(for: classification)
+                    let raycastDistance1 = distance(result.worldTransform.position, self.arView.cameraTransform.translation)
+                    let textEntity = self.model(for: classification, distance: raycastDistance1)
 
                     // 6. Scale the text depending on the distance, such that it always appears with
                     //    the same size on screen.
@@ -216,7 +217,7 @@ class ViewController: UIViewController, ARSessionDelegate {
         }
     }
         
-    func model(for classification: ARMeshClassification) -> ModelEntity {
+    func model(for classification: ARMeshClassification, distance: Float) -> ModelEntity {
         // Return cached model if available
         if let model = modelsForClassification[classification] {
             model.transform = .identity
@@ -226,7 +227,8 @@ class ViewController: UIViewController, ARSessionDelegate {
         // Generate 3D text for the classification
         let lineHeight: CGFloat = 0.05
         let font = MeshResource.Font.systemFont(ofSize: lineHeight)
-        let textMesh = MeshResource.generateText(classification.description, extrusionDepth: Float(lineHeight * 0.1), font: font)
+//        let textMesh = MeshResource.generateText(classifircation.description, extrusionDepth: Float(lineHeight * 0.1), font: font)
+        let textMesh = MeshResource.generateText(String(distance), extrusionDepth: Float(lineHeight * 0.1), font: font)
         let textMaterial = SimpleMaterial(color: classification.color, isMetallic: true)
         let model = ModelEntity(mesh: textMesh, materials: [textMaterial])
         // Move text geometry to the left so that its local origin is in the center
