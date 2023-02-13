@@ -11,9 +11,9 @@ import ARKit
 class ViewController: UIViewController, ARSessionDelegate {
     
     @IBOutlet var arView: ARView!
-    @IBOutlet weak var hideMeshButton: UIButton!
+//    @IBOutlet weak var hideMeshButton: UIButton!
     @IBOutlet weak var resetButton: UIButton!
-    @IBOutlet weak var planeDetectionButton: UIButton!
+//    @IBOutlet weak var planeDetectionButton: UIButton!
     
     let coachingOverlay = ARCoachingOverlayView()
     
@@ -50,6 +50,9 @@ class ViewController: UIViewController, ARSessionDelegate {
 
         configuration.environmentTexturing = .automatic
         arView.session.run(configuration)
+        
+        // Enable plane detection
+        configuration.planeDetection = [.horizontal, .vertical]
         
         let tapRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
         arView.addGestureRecognizer(tapRecognizer)
@@ -128,31 +131,31 @@ class ViewController: UIViewController, ARSessionDelegate {
         }
     }
     
-    @IBAction func toggleMeshButtonPressed(_ button: UIButton) {
-        let isShowingMesh = arView.debugOptions.contains(.showSceneUnderstanding)
-        if isShowingMesh {
-            arView.debugOptions.remove(.showSceneUnderstanding)
-            button.setTitle("Show Mesh", for: [])
-        } else {
-            arView.debugOptions.insert(.showSceneUnderstanding)
-            button.setTitle("Hide Mesh", for: [])
-        }
-    }
+//    @IBAction func toggleMeshButtonPressed(_ button: UIButton) {
+//        let isShowingMesh = arView.debugOptions.contains(.showSceneUnderstanding)
+//        if isShowingMesh {
+//            arView.debugOptions.remove(.showSceneUnderstanding)
+//            button.setTitle("Show Mesh", for: [])
+//        } else {
+//            arView.debugOptions.insert(.showSceneUnderstanding)
+//            button.setTitle("Hide Mesh", for: [])
+//        }
+//    }
     
-    /// - Tag: TogglePlaneDetection
-    @IBAction func togglePlaneDetectionButtonPressed(_ button: UIButton) {
-        guard let configuration = arView.session.configuration as? ARWorldTrackingConfiguration else {
-            return
-        }
-        if configuration.planeDetection == [] {
-            configuration.planeDetection = [.horizontal, .vertical]
-            button.setTitle("Stop Plane Detection", for: [])
-        } else {
-            configuration.planeDetection = []
-            button.setTitle("Start Plane Detection", for: [])
-        }
-        arView.session.run(configuration)
-    }
+//    /// - Tag: TogglePlaneDetection
+//    @IBAction func togglePlaneDetectionButtonPressed(_ button: UIButton) {
+//        guard let configuration = arView.session.configuration as? ARWorldTrackingConfiguration else {
+//            return
+//        }
+//        if configuration.planeDetection == [] {
+//            configuration.planeDetection = [.horizontal, .vertical]
+//            button.setTitle("Stop Plane Detection", for: [])
+//        } else {
+//            configuration.planeDetection = []
+//            button.setTitle("Start Plane Detection", for: [])
+//        }
+//        arView.session.run(configuration)
+//    }
     
     func nearbyFaceWithClassification(to location: SIMD3<Float>, completionBlock: @escaping (SIMD3<Float>?, ARMeshClassification) -> Void) {
         guard let frame = arView.session.currentFrame else {

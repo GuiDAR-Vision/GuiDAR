@@ -17,7 +17,7 @@
                BlueprintIdentifier = "E1635E1123D5BDFD0031A7D8"
                BuildableName = "Scene Semantics.app"
                BlueprintName = "VisualizingSceneSemantics"
-               ReferencedContainer = "container:VisualizingSceneSemantics.xcodeproj">
+               ReferencedContainer = "container:GuiDAR.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -47,7 +47,7 @@
             BlueprintIdentifier = "E1635E1123D5BDFD0031A7D8"
             BuildableName = "Scene Semantics.app"
             BlueprintName = "VisualizingSceneSemantics"
-            ReferencedContainer = "container:VisualizingSceneSemantics.xcodeproj">
+            ReferencedContainer = "container:GuiDAR.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -64,7 +64,7 @@
             BlueprintIdentifier = "E1635E1123D5BDFD0031A7D8"
             BuildableName = "Scene Semantics.app"
             BlueprintName = "VisualizingSceneSemantics"
-            ReferencedContainer = "container:VisualizingSceneSemantics.xcodeproj">
+            ReferencedContainer = "container:GuiDAR.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

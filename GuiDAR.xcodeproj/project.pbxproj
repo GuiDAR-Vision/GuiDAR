@@ -131,7 +131,7 @@
 					};
 				};
 			};
-			buildConfigurationList = E1635E0D23D5BDFD0031A7D8 /* Build configuration list for PBXProject "VisualizingSceneSemantics" */;
+			buildConfigurationList = E1635E0D23D5BDFD0031A7D8 /* Build configuration list for PBXProject "GuiDAR" */;
 			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -361,7 +361,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		E1635E0D23D5BDFD0031A7D8 /* Build configuration list for PBXProject "VisualizingSceneSemantics" */ = {
+		E1635E0D23D5BDFD0031A7D8 /* Build configuration list for PBXProject "GuiDAR" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				E1635E2423D5BDFE0031A7D8 /* Debug */,
