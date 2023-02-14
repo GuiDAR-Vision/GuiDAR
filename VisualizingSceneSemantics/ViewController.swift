@@ -52,7 +52,7 @@ class ViewController: UIViewController, ARSessionDelegate {
         arView.session.run(configuration)
         
         // Enable plane detection
-        configuration.planeDetection = [.horizontal, .vertical]
+//        configuration.planeDetection = [.horizontal, .vertical]
         
         let tapRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
         arView.addGestureRecognizer(tapRecognizer)
@@ -98,7 +98,7 @@ class ViewController: UIViewController, ARSessionDelegate {
                     let textPositionInWorldCoordinates = result.worldTransform.position - (rayDirection * 0.1)
                     
                     // 5. Create a 3D text to visualize the classification result.
-                    let raycastDistance1 = distance(result.worldTransform.position, self.arView.cameraTransform.translation)
+                    let raycastDistance1 = round(distance(result.worldTransform.position, self.arView.cameraTransform.translation)*3.28084*100) / 100.0
                     let textEntity = self.model(for: classification, distance: raycastDistance1)
 
                     // 6. Scale the text depending on the distance, such that it always appears with
@@ -221,11 +221,11 @@ class ViewController: UIViewController, ARSessionDelegate {
     }
         
     func model(for classification: ARMeshClassification, distance: Float) -> ModelEntity {
-        // Return cached model if available
-        if let model = modelsForClassification[classification] {
-            model.transform = .identity
-            return model.clone(recursive: true)
-        }
+//        // Return cached model if available
+//        if let model = modelsForClassification[classification] {
+//            model.transform = .identity
+//            return model.clone(recursive: true)
+//        }
         
         // Generate 3D text for the classification
         let lineHeight: CGFloat = 0.05

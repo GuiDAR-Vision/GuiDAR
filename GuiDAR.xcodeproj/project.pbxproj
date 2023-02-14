@@ -23,7 +23,7 @@
 		28811F3E4EB27EC6196B6F5B /* LICENSE.txt */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = LICENSE.txt; sourceTree = "<group>"; };
 		717F7FEE23F054DC00208378 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		E136397F23EB064300668585 /* RoundedButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RoundedButton.swift; sourceTree = "<group>"; };
-		E1635E1223D5BDFD0031A7D8 /* Scene Semantics.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Scene Semantics.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		E1635E1223D5BDFD0031A7D8 /* GuiDAR.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GuiDAR.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E1635E1523D5BDFD0031A7D8 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		E1635E1723D5BDFD0031A7D8 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		E1635E1C23D5BDFD0031A7D8 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -67,7 +67,7 @@
 		E1635E1323D5BDFD0031A7D8 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				E1635E1223D5BDFD0031A7D8 /* Scene Semantics.app */,
+				E1635E1223D5BDFD0031A7D8 /* GuiDAR.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -99,9 +99,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		E1635E1123D5BDFD0031A7D8 /* VisualizingSceneSemantics */ = {
+		E1635E1123D5BDFD0031A7D8 /* GuiDAR */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = E1635E2623D5BDFE0031A7D8 /* Build configuration list for PBXNativeTarget "VisualizingSceneSemantics" */;
+			buildConfigurationList = E1635E2623D5BDFE0031A7D8 /* Build configuration list for PBXNativeTarget "GuiDAR" */;
 			buildPhases = (
 				E1635E0E23D5BDFD0031A7D8 /* Sources */,
 				E1635E0F23D5BDFD0031A7D8 /* Frameworks */,
@@ -111,9 +111,9 @@
 			);
 			dependencies = (
 			);
-			name = VisualizingSceneSemantics;
+			name = GuiDAR;
 			productName = MeshingSample;
-			productReference = E1635E1223D5BDFD0031A7D8 /* Scene Semantics.app */;
+			productReference = E1635E1223D5BDFD0031A7D8 /* GuiDAR.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -123,7 +123,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 1120;
-				LastUpgradeCheck = 1120;
+				LastUpgradeCheck = 1420;
 				ORGANIZATIONNAME = Apple;
 				TargetAttributes = {
 					E1635E1123D5BDFD0031A7D8 = {
@@ -144,7 +144,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				E1635E1123D5BDFD0031A7D8 /* VisualizingSceneSemantics */,
+				E1635E1123D5BDFD0031A7D8 /* GuiDAR */,
 			);
 		};
 /* End PBXProject section */
@@ -225,6 +225,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -286,6 +287,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -328,7 +330,7 @@
 					"@executable_path/Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.example.apple-samplecode.VisualizingSceneSemantics${SAMPLE_CODE_DISAMBIGUATOR}";
-				PRODUCT_NAME = "Scene Semantics";
+				PRODUCT_NAME = GuiDAR;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.0;
@@ -350,7 +352,7 @@
 					"@executable_path/Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.example.apple-samplecode.VisualizingSceneSemantics${SAMPLE_CODE_DISAMBIGUATOR}";
-				PRODUCT_NAME = "Scene Semantics";
+				PRODUCT_NAME = GuiDAR;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.0;
@@ -370,7 +372,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		E1635E2623D5BDFE0031A7D8 /* Build configuration list for PBXNativeTarget "VisualizingSceneSemantics" */ = {
+		E1635E2623D5BDFE0031A7D8 /* Build configuration list for PBXNativeTarget "GuiDAR" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				E1635E2723D5BDFE0031A7D8 /* Debug */,
