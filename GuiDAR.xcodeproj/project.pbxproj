@@ -57,7 +57,7 @@
 			isa = PBXGroup;
 			children = (
 				717F7FEE23F054DC00208378 /* README.md */,
-				E1635E1423D5BDFD0031A7D8 /* VisualizingSceneSemantics */,
+				E1635E1423D5BDFD0031A7D8 /* GuiDAR */,
 				E1635E1323D5BDFD0031A7D8 /* Products */,
 				EA0E67A9F6B3B2B8047DADCB /* Configuration */,
 				108BE83088A2EF0C2296E2EC /* LICENSE */,
@@ -72,7 +72,7 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		E1635E1423D5BDFD0031A7D8 /* VisualizingSceneSemantics */ = {
+		E1635E1423D5BDFD0031A7D8 /* GuiDAR */ = {
 			isa = PBXGroup;
 			children = (
 				E1635E1523D5BDFD0031A7D8 /* AppDelegate.swift */,
@@ -85,7 +85,7 @@
 				E1635E2023D5BDFE0031A7D8 /* LaunchScreen.storyboard */,
 				E1635E2323D5BDFE0031A7D8 /* Info.plist */,
 			);
-			path = VisualizingSceneSemantics;
+			path = GuiDAR;
 			sourceTree = "<group>";
 		};
 		EA0E67A9F6B3B2B8047DADCB /* Configuration */ = {
@@ -324,12 +324,12 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 2ET4J9JTH3;
-				INFOPLIST_FILE = "$(SRCROOT)/VisualizingSceneSemantics/Info.plist";
+				INFOPLIST_FILE = "$(SRCROOT)/GuiDAR/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.example.apple-samplecode.VisualizingSceneSemantics${SAMPLE_CODE_DISAMBIGUATOR}";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.GuiDAR.GuiDAR${SAMPLE_CODE_DISAMBIGUATOR}";
 				PRODUCT_NAME = GuiDAR;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;
@@ -346,12 +346,12 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 2ET4J9JTH3;
-				INFOPLIST_FILE = "$(SRCROOT)/VisualizingSceneSemantics/Info.plist";
+				INFOPLIST_FILE = "$(SRCROOT)/GuiDAR/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.example.apple-samplecode.VisualizingSceneSemantics${SAMPLE_CODE_DISAMBIGUATOR}";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.GuiDAR.GuiDAR${SAMPLE_CODE_DISAMBIGUATOR}";
 				PRODUCT_NAME = GuiDAR;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;
