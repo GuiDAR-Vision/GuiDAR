@@ -108,15 +108,15 @@ extension Scene {
             model.generateCollisionShapes(recursive: true)
             model.physicsBody = .init()
         }
-        // ... but prevent it from being affected by simulation forces for now.
+//        // ... but prevent it from being affected by simulation forces for now.
         model.physicsBody?.mode = .kinematic
-        
+
         addAnchor(anchor)
-        // Making the physics body dynamic at this time will let the model be affected by forces.
+//        // Making the physics body dynamic at this time will let the model be affected by forces.
+//        Timer.scheduledTimer(withTimeInterval: seconds, repeats: false) { (timer) in
+//            model.physicsBody?.mode = .dynamic
+//        }
         Timer.scheduledTimer(withTimeInterval: seconds, repeats: false) { (timer) in
-            model.physicsBody?.mode = .dynamic
-        }
-        Timer.scheduledTimer(withTimeInterval: seconds + 3, repeats: false) { (timer) in
             self.removeAnchor(anchor)
         }
     }
