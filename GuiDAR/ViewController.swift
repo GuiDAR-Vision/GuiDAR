@@ -19,6 +19,8 @@ class ViewController: UIViewController, ARSessionDelegate {
     
     // Cache for 3D text geometries representing the classification values.
     var modelsForClassification: [ARMeshClassification: ModelEntity] = [:]
+    
+    var timer = Timer()
 
     /// - Tag: ViewDidLoad
     override func viewDidLoad() {
@@ -56,6 +58,17 @@ class ViewController: UIViewController, ARSessionDelegate {
         
         let tapRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
         arView.addGestureRecognizer(tapRecognizer)
+        
+        self.timer = Timer.scheduledTimer(withTimeInterval: 3, repeats: true, block: { _ in
+            self.simulateTaps()
+            })
+        
+    }
+    
+    func simulateTaps() {
+        let point = CGPointMake(200, 350)
+        measureAndIdentify(tapLocation: point)
+        print("Tapped at " + point.debugDescription)
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -80,6 +93,61 @@ class ViewController: UIViewController, ARSessionDelegate {
         // 1. Perform a ray cast against the mesh.
         // Note: Ray-cast option ".estimatedPlane" with alignment ".any" also takes the mesh into account.
         let tapLocation = sender.location(in: arView)
+        if let result = arView.raycast(from: tapLocation, allowing: .estimatedPlane, alignment: .any).first {
+            // ...
+            // 2. Visualize the intersection point of the ray with the real-world surface.
+            let resultAnchor = AnchorEntity(world: result.worldTransform)
+            resultAnchor.addChild(sphere(radius: 0.01, color: .lightGray))
+            arView.scene.addAnchor(resultAnchor, removeAfter: 3)
+
+            // 3. Try to get a classification near the tap location.
+            //    Classifications are available per face (in the geometric sense, not human faces).
+            nearbyFaceWithClassification(to: result.worldTransform.position) { (centerOfFace, classification) in
+                // ...
+                DispatchQueue.main.async {
+                    // 4. Compute a position for the text which is near the result location, but offset 10 cm
+                    // towards the camera (along the ray) to minimize unintentional occlusions of the text by the mesh.
+                    let rayDirection = normalize(result.worldTransform.position - self.arView.cameraTransform.translation)
+                    let textPositionInWorldCoordinates = result.worldTransform.position - (rayDirection * 0.1)
+                    
+                    // 5. Create a 3D text to visualize the classification result.
+                    let distanceToPoint = round(distance(result.worldTransform.position, self.arView.cameraTransform.translation)*3.28084*100) / 100.0
+                    let textEntity = self.model(for: classification, distance: distanceToPoint)
+
+                    // 6. Scale the text depending on the distance, such that it always appears with
+                    //    the same size on screen.
+                    let raycastDistance = distance(result.worldTransform.position, self.arView.cameraTransform.translation)
+                    textEntity.scale = .one * raycastDistance
+
+                    // 7. Place the text, facing the camera.
+                    var resultWithCameraOrientation = self.arView.cameraTransform
+                    resultWithCameraOrientation.translation = textPositionInWorldCoordinates
+                    let textAnchor = AnchorEntity(world: resultWithCameraOrientation.matrix)
+                    textAnchor.addChild(textEntity)
+                    self.arView.scene.addAnchor(textAnchor, removeAfter: 3)
+
+                    // 8. Visualize the center of the face (if any was found) for three seconds.
+                    //    It is possible that this is nil, e.g. if there was no face close enough to the tap location.
+                    if let centerOfFace = centerOfFace {
+                        let faceAnchor = AnchorEntity(world: centerOfFace)
+                        faceAnchor.addChild(self.sphere(radius: 0.01, color: classification.color))
+                        self.arView.scene.addAnchor(faceAnchor, removeAfter: 3)
+                    }
+                }
+            }
+        }
+    }
+    
+    /// Places virtual-text of the classification at the touch-location's real-world intersection with a mesh.
+    /// Note - because classification of the tapped-mesh is retrieved asynchronously, we visualize the intersection
+    /// point immediately to give instant visual feedback of the tap.
+    @objc
+    func measureAndIdentify(tapLocation: CGPoint) {
+        // 1. Perform a ray cast against the mesh.
+        // Note: Ray-cast option ".estimatedPlane" with alignment ".any" also takes the mesh into account.
+//        let tapLocation = sender.location(in: arView)
+//        let tapLocation = CGPointMake(200, 350)
+//        print("tap location: " + String(tapLocation.debugDescription))
         if let result = arView.raycast(from: tapLocation, allowing: .estimatedPlane, alignment: .any).first {
             // ...
             // 2. Visualize the intersection point of the ray with the real-world surface.
@@ -247,4 +315,6 @@ class ViewController: UIViewController, ARSessionDelegate {
         sphere.position.y = radius
         return sphere
     }
+    
+    
 }
