@@ -19,7 +19,21 @@ class ViewController: UIViewController, ARSessionDelegate {
     
     // Cache for 3D text geometries representing the classification values.
     var modelsForClassification: [ARMeshClassification: ModelEntity] = [:]
+<<<<<<< Updated upstream
 
+=======
+    
+    var timer = Timer()
+    
+    // Define a variable to keep track of the screen brightness
+    var originalBrightness: CGFloat = UIScreen.main.brightness
+    
+    let refreshInterval: Double = 1
+    
+    let synthesizer = AVSpeechSynthesizer()
+    let utterance = AVSpeechUtterance(string: "Default String")
+    
+>>>>>>> Stashed changes
     /// - Tag: ViewDidLoad
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -56,6 +70,79 @@ class ViewController: UIViewController, ARSessionDelegate {
         
         let tapRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
         arView.addGestureRecognizer(tapRecognizer)
+<<<<<<< Updated upstream
+=======
+        
+        self.timer = Timer.scheduledTimer(withTimeInterval: refreshInterval, repeats: true, block: { _ in
+            self.simulateTaps()
+            })
+        
+        utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
+        utterance.rate = 0.5 // Adjust the speech rate
+        utterance.pitchMultiplier = 1.2 // Adjust the pitch of the voice
+        utterance.volume = 1.0 // Set the volume of the speech
+        
+        // Create a button and add it to the view
+        let button = UIButton(type: .system)
+        button.setTitle("Dim Screen", for: .normal)
+        button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
+        button.addTarget(self, action: #selector(dimScreen(_:)), for: .touchUpInside)
+        button.isAccessibilityElement = true
+        button.accessibilityTraits = .button
+        button.accessibilityLabel = "Dim Screen Button"
+        button.backgroundColor = .blue
+        button.layer.cornerRadius = 8
+        button.layer.masksToBounds = true
+        view.addSubview(button)
+
+        // Set the button's constraints to position it in the lower left of the screen
+        button.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            button.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            button.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -32)
+        ])
+    }
+    
+    @objc func dimScreen(_ sender: UIButton) {
+        // If the screen brightness is not already dimmed, dim it
+        if UIScreen.main.brightness != 0 {
+            originalBrightness = UIScreen.main.brightness
+            UIScreen.main.brightness = 0
+            sender.setTitle("Undim Screen", for: .normal)
+            sender.accessibilityLabel = "Undim Screen Button"
+        }
+        // If the screen brightness is already dimmed, undim it
+        else {
+            UIScreen.main.brightness = originalBrightness
+            sender.setTitle("Dim Screen", for: .normal)
+            sender.accessibilityLabel = "Dim Screen Button"
+        }
+   }
+    
+    func simulateTaps() {
+        var pointList: [DataPoint] = []
+        pointList.append(DataPoint(cgPoint: CGPointMake(200, 100)))
+        pointList.append(DataPoint(cgPoint: CGPointMake(50, 100)))
+        pointList.append(DataPoint(cgPoint: CGPointMake(350, 100)))
+        pointList.append(DataPoint(cgPoint: CGPointMake(200, 350)))
+        pointList.append(DataPoint(cgPoint: CGPointMake(50, 350)))
+        pointList.append(DataPoint(cgPoint: CGPointMake(350, 350)))
+        pointList.append(DataPoint(cgPoint: CGPointMake(200, 500)))
+        pointList.append(DataPoint(cgPoint: CGPointMake(50, 500)))
+        pointList.append(DataPoint(cgPoint: CGPointMake(350, 500)))
+        pointList.append(DataPoint(cgPoint: CGPointMake(200, 650)))
+        pointList.append(DataPoint(cgPoint: CGPointMake(50, 650)))
+        pointList.append(DataPoint(cgPoint: CGPointMake(350, 650)))
+        for var point in pointList {
+            let result = measureAndIdentify(dataPoint: point)
+            point.distance = result.distance
+            point.classification = result.classification
+//            print("Tapped at " + point.cgPoint.debugDescription)
+            print(point.classification + ", " + String(point.distance) + " ft")
+        }
+        synthesizer.speak(AVSpeechUtterance(string: pointList.first!.classification))
+        
+>>>>>>> Stashed changes
     }
     
     override func viewDidAppear(_ animated: Bool) {

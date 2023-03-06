@@ -25,7 +25,7 @@ extension ViewController: ARCoachingOverlayViewDelegate {
     func coachingOverlayViewDidRequestSessionReset(_ coachingOverlayView: ARCoachingOverlayView) {
         resetButtonPressed(self)
     }
-
+    
     func setupCoachingOverlay() {
         // Set up coaching view
         coachingOverlay.session = arView.session
