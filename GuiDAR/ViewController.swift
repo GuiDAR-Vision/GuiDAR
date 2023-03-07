@@ -20,6 +20,8 @@ class ViewController: UIViewController, ARSessionDelegate {
     
     // Cache for 3D text geometries representing the classification values.
     var modelsForClassification: [ARMeshClassification: ModelEntity] = [:]
+    // Define a variable to keep track of the screen brightness
+    var originalBrightness: CGFloat = UIScreen.main.brightness
     
     var scanTimer = Timer()
     var processTimer = Timer()
@@ -145,7 +147,44 @@ class ViewController: UIViewController, ARSessionDelegate {
         utterance.volume = 1.0 // Set the volume of the speech
         synthesizer.speak(utterance)
         
+        // Create a button and add it to the view
+       let button = UIButton(type: .system)
+       button.setTitle("Dim Screen", for: .normal)
+       button.setTitleColor(.white, for: .normal) // set text color to white
+       button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
+       button.addTarget(self, action: #selector(dimScreen(_:)), for: .touchUpInside)
+       button.isAccessibilityElement = true
+       button.accessibilityTraits = .button
+       button.accessibilityLabel = "Dim Screen Button"
+       button.backgroundColor = .blue
+       button.layer.cornerRadius = 8
+       button.layer.masksToBounds = true
+       view.addSubview(button)
         
+        // Set the button's constraints to position it in the lower left of the screen
+        button.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            button.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            button.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -32)
+        ])
+
+        
+    }
+    
+    @objc func dimScreen(_ sender: UIButton) {
+        // If the screen brightness is not already dimmed, dim it
+        if UIScreen.main.brightness != 0 {
+            originalBrightness = UIScreen.main.brightness
+            UIScreen.main.brightness = 0
+            sender.setTitle("Undim Screen", for: .normal)
+            sender.accessibilityLabel = "Undim Screen Button"
+        }
+        // If the screen brightness is already dimmed, undim it
+        else {
+            UIScreen.main.brightness = originalBrightness
+            sender.setTitle("Dim Screen", for: .normal)
+            sender.accessibilityLabel = "Dim Screen Button"
+        }
     }
     
     override func viewDidAppear(_ animated: Bool) {
