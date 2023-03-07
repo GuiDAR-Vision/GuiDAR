@@ -21,12 +21,15 @@ class ViewController: UIViewController, ARSessionDelegate {
     // Cache for 3D text geometries representing the classification values.
     var modelsForClassification: [ARMeshClassification: ModelEntity] = [:]
     
-    var timer = Timer()
+    var scanTimer = Timer()
+    var processTimer = Timer()
     
-    let refreshInterval: Double = 1
+    let scanRefreshInterval: Double = 1.0
+    let processRefreshInterval: Double = 1.5
     
     let synthesizer = AVSpeechSynthesizer()
-    let utterance = AVSpeechUtterance(string: "Default String")
+    
+    var pointQueue = Queue<DataPoint>()
     
     /// - Tag: ViewDidLoad
     override func viewDidLoad() {
@@ -65,39 +68,83 @@ class ViewController: UIViewController, ARSessionDelegate {
         let tapRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
         arView.addGestureRecognizer(tapRecognizer)
         
-        self.timer = Timer.scheduledTimer(withTimeInterval: refreshInterval, repeats: true, block: { _ in
+        self.scanTimer = Timer.scheduledTimer(withTimeInterval: scanRefreshInterval, repeats: true, block: { _ in
             self.simulateTaps()
             })
         
-        utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
-        utterance.rate = 0.5 // Adjust the speech rate
-        utterance.pitchMultiplier = 1.2 // Adjust the pitch of the voice
-        utterance.volume = 1.0 // Set the volume of the speech
-
+        self.processTimer = Timer.scheduledTimer(withTimeInterval: processRefreshInterval, repeats: true, block: { _ in
+            self.processData()
+            })
     }
     
     func simulateTaps() {
         var pointList: [DataPoint] = []
-        pointList.append(DataPoint(cgPoint: CGPointMake(200, 100)))
         pointList.append(DataPoint(cgPoint: CGPointMake(50, 100)))
+        pointList.append(DataPoint(cgPoint: CGPointMake(200, 100)))
         pointList.append(DataPoint(cgPoint: CGPointMake(350, 100)))
-        pointList.append(DataPoint(cgPoint: CGPointMake(200, 350)))
         pointList.append(DataPoint(cgPoint: CGPointMake(50, 350)))
+        pointList.append(DataPoint(cgPoint: CGPointMake(200, 350)))
         pointList.append(DataPoint(cgPoint: CGPointMake(350, 350)))
-        pointList.append(DataPoint(cgPoint: CGPointMake(200, 500)))
         pointList.append(DataPoint(cgPoint: CGPointMake(50, 500)))
+        pointList.append(DataPoint(cgPoint: CGPointMake(200, 500)))
         pointList.append(DataPoint(cgPoint: CGPointMake(350, 500)))
-        pointList.append(DataPoint(cgPoint: CGPointMake(200, 650)))
         pointList.append(DataPoint(cgPoint: CGPointMake(50, 650)))
+        pointList.append(DataPoint(cgPoint: CGPointMake(200, 650)))
         pointList.append(DataPoint(cgPoint: CGPointMake(350, 650)))
         for var point in pointList {
             let result = measureAndIdentify(dataPoint: point)
             point.distance = result.distance
             point.classification = result.classification
-//            print("Tapped at " + point.cgPoint.debugDescription)
-            print(point.classification + ", " + String(point.distance) + " ft")
         }
-        synthesizer.speak(AVSpeechUtterance(string: pointList.first!.classification))
+        
+    }
+    
+    func processData() {
+        if (pointQueue.isEmpty) {
+            return
+        }
+        print("🟢🟢🟢🟢🟢🟢🟢🟢🟢" + String(pointQueue.size))
+        
+        let pointList: [DataPoint] = pointQueue.dequeueAll()
+//        for _ in 0...pointCounter-1 {
+//            pointList.append(pointQueue.dequeue() ?? DataPoint(distance: 100))
+//        }
+        print("🔴🔴🔴🔴🔴🔴🔴🔴🔴" + String(pointQueue.size))
+        var closestPoint: DataPoint = DataPoint(distance: 100)
+        
+        // find closest point
+        for point in pointList {
+            if point.distance < closestPoint.distance {
+                closestPoint = point
+            }
+        }
+        
+        if closestPoint.distance >= 6.0 {
+            return
+        }
+        let distance = Int(closestPoint.distance)
+        
+        if closestPoint.classification == "Floor" {
+            return
+        }
+        
+        var position = ""
+        let xCoord = closestPoint.cgPoint.x
+        if xCoord == 50 {
+            position = "left"
+        } else if xCoord == 200 {
+            position = "ahead"
+        } else {
+            position = "right"
+        }
+        
+        let utterance = AVSpeechUtterance(string: (closestPoint.classification + String(distance)) + "feet" + position)
+        utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
+        utterance.rate = 0.65 // Adjust the speech rate
+        utterance.pitchMultiplier = 1.2 // Adjust the pitch of the voice
+        utterance.volume = 1.0 // Set the volume of the speech
+        synthesizer.speak(utterance)
+        
         
     }
     
@@ -140,7 +187,7 @@ class ViewController: UIViewController, ARSessionDelegate {
             // 2. Visualize the intersection point of the ray with the real-world surface.
             let resultAnchor = AnchorEntity(world: result.worldTransform)
             resultAnchor.addChild(sphere(radius: 0.01, color: .lightGray))
-            arView.scene.addAnchor(resultAnchor, removeAfter: refreshInterval)
+            arView.scene.addAnchor(resultAnchor, removeAfter: scanRefreshInterval)
             // 3. Try to get a classification near the tap location.
             //    Classifications are available per face (in the geometric sense, not human faces).
             nearbyFaceWithClassification(to: result.worldTransform.position) { (centerOfFace, classification) in
@@ -167,9 +214,11 @@ class ViewController: UIViewController, ARSessionDelegate {
                     resultWithCameraOrientation.translation = textPositionInWorldCoordinates
                     let textAnchor = AnchorEntity(world: resultWithCameraOrientation.matrix)
                     textAnchor.addChild(textEntity)
-                    self.arView.scene.addAnchor(textAnchor, removeAfter: self.refreshInterval)
+                    self.arView.scene.addAnchor(textAnchor, removeAfter: self.scanRefreshInterval)
                     
-                    print("🟢🟢🟢🟢🟢🟢🟢🟢🟢" + classification.description + ", " + String(distanceToPoint) + " ft")
+                    dataPoint.classification = classificationStr
+                    dataPoint.distance = distanceVal
+                    self.pointQueue.enqueue(dataPoint)
 //                    if (point.x == 350 && point.y == 350) {
 //                        self.synthesizer.speak(AVSpeechUtterance(string: classification.description))
 //                    }
@@ -185,7 +234,6 @@ class ViewController: UIViewController, ARSessionDelegate {
                 }
             }
         }
-        print("🔴🔴🔴🔴🔴🔴🔴🔴🔴" + classificationStr + ", " + String(distanceVal) + " ft")
         return (distance: distanceVal, classification: classificationStr)
     }
     
@@ -324,5 +372,48 @@ class DataPoint{
         self.cgPoint = cgPoint
         self.distance = 0
         self.classification = ""
+    }
+    
+    init(distance: Float) {
+        self.cgPoint = CGPointMake(0, 0)
+        self.distance = distance
+        self.classification = ""
+    }
+    
+}
+
+struct Queue<T> {
+  private var elements: [T] = []
+
+  mutating func enqueue(_ value: T) {
+    elements.append(value)
+  }
+
+  mutating func dequeue() -> T? {
+    guard !elements.isEmpty else {
+      return nil
+    }
+    return elements.removeFirst()
+  }
+    mutating func dequeueAll() -> [T] {
+        let elementsCopy = elements
+        elements = []
+        return elementsCopy
+    }
+
+  var head: T? {
+    return elements.first
+  }
+
+  var tail: T? {
+    return elements.last
+  }
+
+    var isEmpty: Bool {
+        return elements.isEmpty
+    }
+    
+    var size: Int {
+        return elements.count
     }
 }

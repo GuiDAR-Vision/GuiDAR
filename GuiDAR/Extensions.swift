@@ -24,7 +24,7 @@ extension ARMeshClassification {
         case .table: return "Table"
         case .wall: return "Wall"
         case .window: return "Window"
-        case .none: return "None"
+        case .none: return "Object"
         @unknown default: return "Unknown"
         }
     }
