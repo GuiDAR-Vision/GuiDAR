@@ -26,7 +26,7 @@ class ViewController: UIViewController, ARSessionDelegate {
     var processTimer = Timer()
     
     let scanRefreshInterval: Double = 1.0
-    let processRefreshInterval: Double = 1.5
+    let processRefreshInterval: Double = 0.75
     
     let synthesizer = AVSpeechSynthesizer()
     
@@ -89,6 +89,9 @@ class ViewController: UIViewController, ARSessionDelegate {
         pointList.append(DataPoint(cgPoint: CGPointMake(50, 100)))
         pointList.append(DataPoint(cgPoint: CGPointMake(200, 100)))
         pointList.append(DataPoint(cgPoint: CGPointMake(350, 100)))
+        pointList.append(DataPoint(cgPoint: CGPointMake(50, 225)))
+        pointList.append(DataPoint(cgPoint: CGPointMake(200, 225)))
+        pointList.append(DataPoint(cgPoint: CGPointMake(350, 225)))
         pointList.append(DataPoint(cgPoint: CGPointMake(50, 350)))
         pointList.append(DataPoint(cgPoint: CGPointMake(200, 350)))
         pointList.append(DataPoint(cgPoint: CGPointMake(350, 350)))
@@ -98,6 +101,9 @@ class ViewController: UIViewController, ARSessionDelegate {
         pointList.append(DataPoint(cgPoint: CGPointMake(50, 650)))
         pointList.append(DataPoint(cgPoint: CGPointMake(200, 650)))
         pointList.append(DataPoint(cgPoint: CGPointMake(350, 650)))
+        pointList.append(DataPoint(cgPoint: CGPointMake(50, 750)))
+        pointList.append(DataPoint(cgPoint: CGPointMake(200, 750)))
+        pointList.append(DataPoint(cgPoint: CGPointMake(350, 750)))
         for point in pointList {
             measureAndIdentify(dataPoint: point)
         }
@@ -112,10 +118,23 @@ class ViewController: UIViewController, ARSessionDelegate {
         let pointList: [DataPoint] = pointQueue.dequeueAll()
         var closestPoint: DataPoint = DataPoint(distance: 100)
         
+        let distanceThreshold: Float = 6.0
+        
         var obstructionCount = 0
         
         // find closest point
         for point in pointList {
+            // ignore certain obstacles
+            let ignoredObstacles = ["Floor", "Ceiling"]
+            if (ignoredObstacles.contains(point.classification)) {
+                continue
+            }
+            
+            // ignore points farther than threshold
+            if point.distance >= distanceThreshold {
+                continue
+            }
+            
             if point.distance < closestPoint.distance {
                 closestPoint = point
             }
@@ -136,30 +155,44 @@ class ViewController: UIViewController, ARSessionDelegate {
             return
         }
         
-        if closestPoint.distance >= 8.0 {
+        if closestPoint.distance >= distanceThreshold {
             return
         }
         let distance = Int(closestPoint.distance)
         
         let classification = closestPoint.classification
         
-        if classification == "Floor" || classification == "Ceiling" {
-            return
-        }
-        
         feedbackGenerator.prepare()
         
-        var position = ""
+        var xPosition = ""
+        var yPosition = ""
         let xCoord = closestPoint.cgPoint.x
-        if xCoord == 50 {
-            position = "left"
-        } else if xCoord == 200 {
-            position = "ahead"
-        } else {
-            position = "right"
+        let yCoord = closestPoint.cgPoint.y
+        
+        switch xCoord {
+        case 0..<100:
+            xPosition = "left"
+        case 100..<300:
+            xPosition = "ahead"
+        default:
+            xPosition = "right"
         }
         
-        let utterance = AVSpeechUtterance(string: (closestPoint.classification + String(distance)) + "feet" + position)
+        switch yCoord {
+        case 0..<300:
+            yPosition = "above"
+        case 300..<600:
+            yPosition = "straight"
+        default:
+            yPosition = "down"
+        }
+        
+        var unit = "feet"
+        if distance == 1 {
+            unit = "foot"
+        }
+        
+        let utterance = AVSpeechUtterance(string: (closestPoint.classification + String(distance)) + unit + yPosition + xPosition)
         utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
         utterance.rate = 0.65 // Adjust the speech rate
         utterance.pitchMultiplier = 1.2 // Adjust the pitch of the voice
