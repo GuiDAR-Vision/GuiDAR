@@ -8,13 +8,12 @@ Main view controller for the AR experience.
 import RealityKit
 import ARKit
 import AVFoundation
+import UIKit
 
 class ViewController: UIViewController, ARSessionDelegate {
     
     @IBOutlet var arView: ARView!
-//    @IBOutlet weak var hideMeshButton: UIButton!
     @IBOutlet weak var resetButton: UIButton!
-//    @IBOutlet weak var planeDetectionButton: UIButton!
     
     let coachingOverlay = ARCoachingOverlayView()
     
@@ -33,14 +32,20 @@ class ViewController: UIViewController, ARSessionDelegate {
     
     var pointQueue = Queue<DataPoint>()
     
+    let feedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
+    
+    let blackoutView = BlackoutView(frame: UIScreen.main.bounds)
+    
     /// - Tag: ViewDidLoad
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        view.addSubview(blackoutView)
+        
         arView.session.delegate = self
         
         setupCoachingOverlay()
-
+        
         arView.environment.sceneUnderstanding.options = []
         
         // Turn on occlusion from the scene reconstruction's mesh.
@@ -48,7 +53,7 @@ class ViewController: UIViewController, ARSessionDelegate {
         
         // Turn on physics for the scene reconstruction's mesh.
         arView.environment.sceneUnderstanding.options.insert(.physics)
-
+        
         // Display a debug visualization of the mesh.
         arView.debugOptions.insert(.showSceneUnderstanding)
         
@@ -60,23 +65,23 @@ class ViewController: UIViewController, ARSessionDelegate {
         arView.automaticallyConfigureSession = false
         let configuration = ARWorldTrackingConfiguration()
         configuration.sceneReconstruction = .meshWithClassification
-
+        
         configuration.environmentTexturing = .automatic
         arView.session.run(configuration)
         
         // Enable plane detection
-//        configuration.planeDetection = [.horizontal, .vertical]
+        //        configuration.planeDetection = [.horizontal, .vertical]
         
         let tapRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
         arView.addGestureRecognizer(tapRecognizer)
         
         self.scanTimer = Timer.scheduledTimer(withTimeInterval: scanRefreshInterval, repeats: true, block: { _ in
             self.simulateTaps()
-            })
+        })
         
         self.processTimer = Timer.scheduledTimer(withTimeInterval: processRefreshInterval, repeats: true, block: { _ in
             self.processData()
-            })
+        })
     }
     
     func simulateTaps() {
@@ -93,10 +98,8 @@ class ViewController: UIViewController, ARSessionDelegate {
         pointList.append(DataPoint(cgPoint: CGPointMake(50, 650)))
         pointList.append(DataPoint(cgPoint: CGPointMake(200, 650)))
         pointList.append(DataPoint(cgPoint: CGPointMake(350, 650)))
-        for var point in pointList {
-            let result = measureAndIdentify(dataPoint: point)
-            point.distance = result.distance
-            point.classification = result.classification
+        for point in pointList {
+            measureAndIdentify(dataPoint: point)
         }
         
     }
@@ -105,30 +108,46 @@ class ViewController: UIViewController, ARSessionDelegate {
         if (pointQueue.isEmpty) {
             return
         }
-        print("🟢🟢🟢🟢🟢🟢🟢🟢🟢" + String(pointQueue.size))
-        
+
         let pointList: [DataPoint] = pointQueue.dequeueAll()
-//        for _ in 0...pointCounter-1 {
-//            pointList.append(pointQueue.dequeue() ?? DataPoint(distance: 100))
-//        }
-        print("🔴🔴🔴🔴🔴🔴🔴🔴🔴" + String(pointQueue.size))
         var closestPoint: DataPoint = DataPoint(distance: 100)
+        
+        var obstructionCount = 0
         
         // find closest point
         for point in pointList {
             if point.distance < closestPoint.distance {
                 closestPoint = point
             }
+            
+            // check for obstructions to camera
+            if point.distance <= 1.0 {
+                obstructionCount += 1
+            }
         }
         
-        if closestPoint.distance >= 6.0 {
+        if obstructionCount >= (pointList.count / 3) {
+            let utterance = AVSpeechUtterance(string: "Camera obstructed")
+            utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
+            utterance.rate = 0.65 // Adjust the speech rate
+            utterance.pitchMultiplier = 1.2 // Adjust the pitch of the voice
+            utterance.volume = 1.0 // Set the volume of the speech
+            synthesizer.speak(utterance)
+            return
+        }
+        
+        if closestPoint.distance >= 8.0 {
             return
         }
         let distance = Int(closestPoint.distance)
         
-        if closestPoint.classification == "Floor" {
+        let classification = closestPoint.classification
+        
+        if classification == "Floor" || classification == "Ceiling" {
             return
         }
+        
+        feedbackGenerator.prepare()
         
         var position = ""
         let xCoord = closestPoint.cgPoint.x
@@ -146,6 +165,7 @@ class ViewController: UIViewController, ARSessionDelegate {
         utterance.pitchMultiplier = 1.2 // Adjust the pitch of the voice
         utterance.volume = 1.0 // Set the volume of the speech
         synthesizer.speak(utterance)
+        feedbackGenerator.impactOccurred()
         
         // Create a button and add it to the view
        let button = UIButton(type: .system)
@@ -170,7 +190,7 @@ class ViewController: UIViewController, ARSessionDelegate {
 
         
     }
-    
+        
     @objc func dimScreen(_ sender: UIButton) {
         // If the screen brightness is not already dimmed, dim it
         if UIScreen.main.brightness != 0 {
@@ -178,12 +198,14 @@ class ViewController: UIViewController, ARSessionDelegate {
             UIScreen.main.brightness = 0
             sender.setTitle("Undim Screen", for: .normal)
             sender.accessibilityLabel = "Undim Screen Button"
+            blackoutView.toggle()
         }
         // If the screen brightness is already dimmed, undim it
         else {
             UIScreen.main.brightness = originalBrightness
             sender.setTitle("Dim Screen", for: .normal)
             sender.accessibilityLabel = "Dim Screen Button"
+            blackoutView.toggle()
         }
     }
     
@@ -201,21 +223,15 @@ class ViewController: UIViewController, ARSessionDelegate {
         return true
     }
     
-    /// Places virtual-text of the classification at the touch-location's real-world intersection with a mesh.
-    /// Note - because classification of the tapped-mesh is retrieved asynchronously, we visualize the intersection
-    /// point immediately to give instant visual feedback of the tap.
     @objc
     func handleTap(_ sender: UITapGestureRecognizer) {
-        let tapLocation = sender.location(in: arView)
-        var tapPoint = DataPoint(cgPoint: tapLocation)
-        measureAndIdentify(dataPoint: tapPoint)
-        synthesizer.speak(AVSpeechUtterance(string: "Tapped here!"))
+
     }
     
     /// Places virtual-text of the classification at the touch-location's real-world intersection with a mesh.
     /// Note - because classification of the tapped-mesh is retrieved asynchronously, we visualize the intersection
     /// point immediately to give instant visual feedback of the tap.Escaping closure captures 'inout' parameter
-    func measureAndIdentify(dataPoint: DataPoint) -> (distance: Float, classification: String) {
+    func measureAndIdentify(dataPoint: DataPoint) {
         let point = dataPoint.cgPoint
         var distanceVal: Float = 0
         var classificationStr: String = ""
@@ -258,22 +274,9 @@ class ViewController: UIViewController, ARSessionDelegate {
                     dataPoint.classification = classificationStr
                     dataPoint.distance = distanceVal
                     self.pointQueue.enqueue(dataPoint)
-//                    if (point.x == 350 && point.y == 350) {
-//                        self.synthesizer.speak(AVSpeechUtterance(string: classification.description))
-//                    }
-                    
-
-                    // 8. Visualize the center of the face (if any was found) for three seconds.
-                    //    It is possible that this is nil, e.g. if there was no face close enough to the tap location.
-//                    if let centerOfFace = centerOfFace {
-//                        let faceAnchor = AnchorEntity(world: centerOfFace)
-//                        faceAnchor.addChild(self.sphere(radius: 0.01, color: classification.color))
-//                        self.arView.scene.addAnchor(faceAnchor, removeAfter: 1)
-//                    }
                 }
             }
         }
-        return (distance: distanceVal, classification: classificationStr)
     }
     
     @IBAction func resetButtonPressed(_ sender: Any) {
@@ -281,32 +284,6 @@ class ViewController: UIViewController, ARSessionDelegate {
             arView.session.run(configuration, options: .resetSceneReconstruction)
         }
     }
-    
-//    @IBAction func toggleMeshButtonPressed(_ button: UIButton) {
-//        let isShowingMesh = arView.debugOptions.contains(.showSceneUnderstanding)
-//        if isShowingMesh {
-//            arView.debugOptions.remove(.showSceneUnderstanding)
-//            button.setTitle("Show Mesh", for: [])
-//        } else {
-//            arView.debugOptions.insert(.showSceneUnderstanding)
-//            button.setTitle("Hide Mesh", for: [])
-//        }
-//    }
-    
-//    /// - Tag: TogglePlaneDetection
-//    @IBAction func togglePlaneDetectionButtonPressed(_ button: UIButton) {
-//        guard let configuration = arView.session.configuration as? ARWorldTrackingConfiguration else {
-//            return
-//        }
-//        if configuration.planeDetection == [] {
-//            configuration.planeDetection = [.horizontal, .vertical]
-//            button.setTitle("Stop Plane Detection", for: [])
-//        } else {
-//            configuration.planeDetection = []
-//            button.setTitle("Start Plane Detection", for: [])
-//        }
-//        arView.session.run(configuration)
-//    }
     
     func nearbyFaceWithClassification(to location: SIMD3<Float>, completionBlock: @escaping (SIMD3<Float>?, ARMeshClassification) -> Void) {
         guard let frame = arView.session.currentFrame else {
@@ -372,17 +349,11 @@ class ViewController: UIViewController, ARSessionDelegate {
     }
         
     func model(for classification: ARMeshClassification, distance: Float) -> ModelEntity {
-//        // Return cached model if available
-//        if let model = modelsForClassification[classification] {
-//            model.transform = .identity
-//            return model.clone(recursive: true)
-//        }
         
         // Generate 3D text for the classification
         let lineHeight: CGFloat = 0.05
         let font = MeshResource.Font.systemFont(ofSize: lineHeight)
         let textMesh = MeshResource.generateText(classification.description + "\n" + String(distance) + "ft", extrusionDepth: Float(lineHeight * 0.1), font: font)
-//        let textMesh = MeshResource.generateText(String(distance), extrusionDepth: Float(lineHeight * 0.1), font: font)
         let textMaterial = SimpleMaterial(color: classification.color, isMetallic: true)
         let model = ModelEntity(mesh: textMesh, materials: [textMaterial])
         // Move text geometry to the left so that its local origin is in the center
@@ -454,5 +425,23 @@ struct Queue<T> {
     
     var size: Int {
         return elements.count
+    }
+}
+
+class BlackoutView: UIView {
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        self.backgroundColor = .black
+        self.alpha = 0.0
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    func toggle() {
+        UIView.animate(withDuration: 0.5) {
+            self.alpha = self.alpha == 0.0 ? 1.0 : 0.0
+        }
     }
 }
