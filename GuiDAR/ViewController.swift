@@ -32,7 +32,8 @@ class ViewController: UIViewController, ARSessionDelegate {
     
     var pointQueue = Queue<DataPoint>()
     
-    let feedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
+    let impactFeedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
+    let notifactionFeedbackGenerator = UINotificationFeedbackGenerator()
     
     let blackoutView = BlackoutView(frame: UIScreen.main.bounds)
     
@@ -162,7 +163,7 @@ class ViewController: UIViewController, ARSessionDelegate {
         
         let classification = closestPoint.classification
         
-        feedbackGenerator.prepare()
+        impactFeedbackGenerator.prepare()
         
         var xPosition = ""
         var yPosition = ""
@@ -198,7 +199,17 @@ class ViewController: UIViewController, ARSessionDelegate {
         utterance.pitchMultiplier = 1.2 // Adjust the pitch of the voice
         utterance.volume = 1.0 // Set the volume of the speech
         synthesizer.speak(utterance)
-        feedbackGenerator.impactOccurred()
+        
+        switch distance {
+        case 0...3: do {
+            self.notifactionFeedbackGenerator.notificationOccurred(.error)
+        } case 3...6: do {
+            self.notifactionFeedbackGenerator.notificationOccurred(.success)
+        } default:
+            if distance < 10 {
+                impactFeedbackGenerator.impactOccurred(intensity: 1.0)
+            }
+        }
         
         // Create a button and add it to the view
        let button = UIButton(type: .system)
@@ -287,13 +298,12 @@ class ViewController: UIViewController, ARSessionDelegate {
                     let textPositionInWorldCoordinates = result.worldTransform.position - (rayDirection * 0.1)
                     
                     // 5. Create a 3D text to visualize the classification result.
-                    let distanceToPoint = round(distance(result.worldTransform.position, self.arView.cameraTransform.translation)*3.28084*100) / 100.0
+                    let distanceToPoint = round(distance(result.worldTransform.position, self.arView.cameraTransform.translation)*3.28084*10.0)/10.0
                     let textEntity = self.model(for: classification, distance: distanceToPoint)
                     classificationStr = classification.description
                     distanceVal = distanceToPoint
 
-                    // 6. Scale the text depending on the distance, such that it always appears with
-                    //    the same size on screen.
+                    // 6. Scale the text depending on the distance, such that it always appears with the same size on screen.
                     let raycastDistance = distance(result.worldTransform.position, self.arView.cameraTransform.translation)
                     textEntity.scale = .one * raycastDistance
 
@@ -387,7 +397,7 @@ class ViewController: UIViewController, ARSessionDelegate {
         let lineHeight: CGFloat = 0.05
         let font = MeshResource.Font.systemFont(ofSize: lineHeight)
         let textMesh = MeshResource.generateText(classification.description + "\n" + String(distance) + "ft", extrusionDepth: Float(lineHeight * 0.1), font: font)
-        let textMaterial = SimpleMaterial(color: classification.color, isMetallic: true)
+        let textMaterial = SimpleMaterial(color: classification.color, isMetallic: false)
         let model = ModelEntity(mesh: textMesh, materials: [textMaterial])
         // Move text geometry to the left so that its local origin is in the center
         model.position.x -= model.visualBounds(relativeTo: nil).extents.x / 2
