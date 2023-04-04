@@ -14,7 +14,12 @@ class ViewController: UIViewController, ARSessionDelegate {
     
     @IBOutlet var arView: ARView!
     @IBOutlet weak var resetButton: UIButton!
+    @IBAction func sliderValueChanged(_ sender: UISlider) {
+        speechRate = sender.value
+       // Use the speechRate value to set the speech rate in the AVSpeechUtterance
+    }
     
+    var speechRate: Float = 0.65
     let coachingOverlay = ARCoachingOverlayView()
     
     // Cache for 3D text geometries representing the classification values.
@@ -119,7 +124,7 @@ class ViewController: UIViewController, ARSessionDelegate {
         let pointList: [DataPoint] = pointQueue.dequeueAll()
         var closestPoint: DataPoint = DataPoint(distance: 100)
         
-        let distanceThreshold: Float = 6.0
+        let distanceThreshold: Float = 10.0
         
         var obstructionCount = 0
         
@@ -149,7 +154,7 @@ class ViewController: UIViewController, ARSessionDelegate {
         if obstructionCount >= (pointList.count / 3) {
             let utterance = AVSpeechUtterance(string: "Camera obstructed")
             utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
-            utterance.rate = 0.65 // Adjust the speech rate
+            utterance.rate = speechRate // Adjust the speech rate
             utterance.pitchMultiplier = 1.2 // Adjust the pitch of the voice
             utterance.volume = 1.0 // Set the volume of the speech
             synthesizer.speak(utterance)
@@ -195,7 +200,7 @@ class ViewController: UIViewController, ARSessionDelegate {
         
         let utterance = AVSpeechUtterance(string: (closestPoint.classification + String(distance)) + unit + yPosition + xPosition)
         utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
-        utterance.rate = 0.65 // Adjust the speech rate
+        utterance.rate = Float(speechRate) // Adjust the speech rate
         utterance.pitchMultiplier = 1.2 // Adjust the pitch of the voice
         utterance.volume = 1.0 // Set the volume of the speech
         synthesizer.speak(utterance)
