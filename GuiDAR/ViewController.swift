@@ -151,13 +151,15 @@ class ViewController: UIViewController, ARSessionDelegate {
             }
         }
         
-        if obstructionCount >= (pointList.count / 3) {
+        if obstructionCount >= (pointList.count) {
             let utterance = AVSpeechUtterance(string: "Camera obstructed")
             utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
             utterance.rate = speechRate // Adjust the speech rate
             utterance.pitchMultiplier = 1.2 // Adjust the pitch of the voice
             utterance.volume = 1.0 // Set the volume of the speech
-            synthesizer.speak(utterance)
+            if !synthesizer.isSpeaking {
+                synthesizer.speak(utterance)
+            }
             return
         }
         
@@ -203,7 +205,9 @@ class ViewController: UIViewController, ARSessionDelegate {
         utterance.rate = Float(speechRate) // Adjust the speech rate
         utterance.pitchMultiplier = 1.2 // Adjust the pitch of the voice
         utterance.volume = 1.0 // Set the volume of the speech
-        synthesizer.speak(utterance)
+        if !synthesizer.isSpeaking {
+            synthesizer.speak(utterance)
+        }
         
         switch distance {
         case 0...3: do {
