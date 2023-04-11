@@ -28,7 +28,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
         guard ARWorldTrackingConfiguration.supportsSceneReconstruction(.meshWithClassification) else {
             fatalError("""
-                Scene reconstruction requires a device with a LiDAR Scanner, such as the 4th-Gen iPad Pro.
+                Scene reconstruction requires a device with a LiDAR Scanner, such as the iPhone 12 Pro and later.
             """)
         }
         

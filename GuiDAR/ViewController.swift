@@ -13,7 +13,6 @@ import UIKit
 class ViewController: UIViewController, ARSessionDelegate {
     
     @IBOutlet var arView: ARView!
-    @IBOutlet weak var resetButton: UIButton!
     @IBAction func sliderValueChanged(_ sender: UISlider) {
         speechRate = sender.value
        // Use the speechRate value to set the speech rate in the AVSpeechUtterance
@@ -41,6 +40,7 @@ class ViewController: UIViewController, ARSessionDelegate {
     let notifactionFeedbackGenerator = UINotificationFeedbackGenerator()
     
     let blackoutView = BlackoutView(frame: UIScreen.main.bounds)
+
     
     /// - Tag: ViewDidLoad
     override func viewDidLoad() {
@@ -151,7 +151,7 @@ class ViewController: UIViewController, ARSessionDelegate {
             }
         }
         
-        if obstructionCount >= (pointList.count) {
+        if (pointList.count > 0 && pointList.count <= 5) || obstructionCount >= (pointList.count / 2) {
             let utterance = AVSpeechUtterance(string: "Camera obstructed")
             utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
             utterance.rate = speechRate // Adjust the speech rate
@@ -331,7 +331,7 @@ class ViewController: UIViewController, ARSessionDelegate {
         }
     }
     
-    @IBAction func resetButtonPressed(_ sender: Any) {
+    func resetScene(_ sender: Any) {
         if let configuration = arView.session.configuration {
             arView.session.run(configuration, options: .resetSceneReconstruction)
         }
@@ -393,7 +393,7 @@ class ViewController: UIViewController, ARSessionDelegate {
             let alertController = UIAlertController(title: "The AR session failed.", message: errorMessage, preferredStyle: .alert)
             let restartAction = UIAlertAction(title: "Restart Session", style: .default) { _ in
                 alertController.dismiss(animated: true, completion: nil)
-                self.resetButtonPressed(self)
+                self.resetScene(self)
             }
             alertController.addAction(restartAction)
             self.present(alertController, animated: true, completion: nil)
