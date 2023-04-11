@@ -13,12 +13,22 @@ import UIKit
 class ViewController: UIViewController, ARSessionDelegate {
     
     @IBOutlet var arView: ARView!
+    @IBOutlet var distanceLabel: UILabel!
+    @IBOutlet var distanceStepper: UIStepper!
     @IBAction func sliderValueChanged(_ sender: UISlider) {
         speechRate = sender.value
        // Use the speechRate value to set the speech rate in the AVSpeechUtterance
     }
+    @IBAction func stepperValueChanged(_ sender: UIStepper) {
+        distanceThreshold = Float(sender.value)
+        distanceLabel.text = "Max Distance: " + String(Int(sender.value)) + " ft"
+    }
     
     var speechRate: Float = 0.65
+    var distanceThreshold: Float = 10.0
+    let scanRefreshInterval: Double = 1.0
+    let processRefreshInterval: Double = 0.75
+    
     let coachingOverlay = ARCoachingOverlayView()
     
     // Cache for 3D text geometries representing the classification values.
@@ -28,10 +38,7 @@ class ViewController: UIViewController, ARSessionDelegate {
     
     var scanTimer = Timer()
     var processTimer = Timer()
-    
-    let scanRefreshInterval: Double = 1.0
-    let processRefreshInterval: Double = 0.75
-    
+
     let synthesizer = AVSpeechSynthesizer()
     
     var pointQueue = Queue<DataPoint>()
@@ -45,6 +52,8 @@ class ViewController: UIViewController, ARSessionDelegate {
     /// - Tag: ViewDidLoad
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        distanceStepper.value = 10.0
         
         view.addSubview(blackoutView)
         
@@ -77,6 +86,27 @@ class ViewController: UIViewController, ARSessionDelegate {
         
         // Enable plane detection
         //        configuration.planeDetection = [.horizontal, .vertical]
+        
+        // Create a button and add it to the view
+       let button = UIButton(type: .system)
+       button.setTitle("Dim Screen", for: .normal)
+       button.setTitleColor(.white, for: .normal) // set text color to white
+       button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
+       button.addTarget(self, action: #selector(dimScreen(_:)), for: .touchUpInside)
+       button.isAccessibilityElement = true
+       button.accessibilityTraits = .button
+       button.accessibilityLabel = "Dim Screen Button"
+       button.backgroundColor = .blue
+       button.layer.cornerRadius = 8
+       button.layer.masksToBounds = true
+       view.addSubview(button)
+        
+        // Set the button's constraints to position it in the lower left of the screen
+        button.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            button.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            button.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -32)
+        ])
         
         let tapRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
         arView.addGestureRecognizer(tapRecognizer)
@@ -123,8 +153,6 @@ class ViewController: UIViewController, ARSessionDelegate {
 
         let pointList: [DataPoint] = pointQueue.dequeueAll()
         var closestPoint: DataPoint = DataPoint(distance: 100)
-        
-        let distanceThreshold: Float = 10.0
         
         var obstructionCount = 0
         
@@ -219,29 +247,6 @@ class ViewController: UIViewController, ARSessionDelegate {
                 impactFeedbackGenerator.impactOccurred(intensity: 1.0)
             }
         }
-        
-        // Create a button and add it to the view
-       let button = UIButton(type: .system)
-       button.setTitle("Dim Screen", for: .normal)
-       button.setTitleColor(.white, for: .normal) // set text color to white
-       button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
-       button.addTarget(self, action: #selector(dimScreen(_:)), for: .touchUpInside)
-       button.isAccessibilityElement = true
-       button.accessibilityTraits = .button
-       button.accessibilityLabel = "Dim Screen Button"
-       button.backgroundColor = .blue
-       button.layer.cornerRadius = 8
-       button.layer.masksToBounds = true
-       view.addSubview(button)
-        
-        // Set the button's constraints to position it in the lower left of the screen
-        button.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            button.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            button.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -32)
-        ])
-
-        
     }
         
     @objc func dimScreen(_ sender: UIButton) {
@@ -266,14 +271,6 @@ class ViewController: UIViewController, ARSessionDelegate {
         super.viewDidAppear(animated)
         // Prevent the screen from being dimmed to avoid interrupting the AR experience.
         UIApplication.shared.isIdleTimerDisabled = true
-    }
-    
-    override var prefersHomeIndicatorAutoHidden: Bool {
-        return true
-    }
-    
-    override var prefersStatusBarHidden: Bool {
-        return true
     }
     
     @objc
